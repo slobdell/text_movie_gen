@@ -1,0 +1,20 @@
+
+.single-floor {
+    border: 1px solid black;
+    padding: 2px 0;
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.2em;
+    color: #111;
+}
+
+.single-floor:hover {
+    border: 1px solid #428bca;
+    cursor: pointer;
+    background-color: #5bc0de;
+}
+
+.selection-meta {
+    font-size: 11px;
+    border-bottom: 1px solid #ccc;
+}

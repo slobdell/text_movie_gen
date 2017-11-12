@@ -1,0 +1,7 @@
+{
+    "video_output": "./",
+    "width": 200,
+    "height": 12,
+    "scroll_buffer_seconds": 1,
+    "font": "verdana.ttf"
+}
