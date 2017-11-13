@@ -1,3 +1,5 @@
 
 *.un~
 env
+*.pyc
+output.mp4
