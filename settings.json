@@ -1,7 +1,7 @@
 {
-    "video_output": "./",
-    "width": 200,
-    "height": 12,
+    "video_output": "/Users/slobdell/projects/led_controller/",
+    "width": 150,
+    "height": 30,
     "scroll_buffer_seconds": 0,
     "font": "verdana.ttf"
 }

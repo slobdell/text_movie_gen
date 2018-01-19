@@ -1,6 +1,7 @@
 import base64
 import json
 import commands
+import os
 import re
 
 from flask import Flask
@@ -76,6 +77,10 @@ def receive_user_input():
     run_command(
         _video_input_to_command(video_input)
     )
+    try:
+        os.system("killall ffmpeg")
+    except:
+        pass
     return json.dumps({"video": _get_video_as_b64()}), 200
 
 
