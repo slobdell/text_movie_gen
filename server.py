@@ -94,17 +94,19 @@ def _video_input_to_command(video_input):
         scroll_pos = "x=(w-text_w)/2:y=(h-text_h)/2"
     elif video_input.scroll_type == "vertical":
         scroll_pos = "y=h-mod(max(t-{scroll_start_seconds}\,0)*(h+th)/{scroll_time_seconds}\,(h+th)):x=(w-text_w)/2".format(
-            scroll_start_seconds=0,
+            scroll_start_seconds=SETTINGS["scroll_buffer_seconds"],
             scroll_time_seconds=video_input.scroll_seconds,
         )
     elif video_input.scroll_type == "horizontal":
         scroll_pos = "x=w-mod(max(t-{scroll_start_seconds}\,0)*(w+tw)/{scroll_time_seconds}\,(w+tw)):y=(h-text_h)/2".format(
-            scroll_start_seconds=0,
+            scroll_start_seconds=SETTINGS["scroll_buffer_seconds"],
             scroll_time_seconds=video_input.scroll_seconds,
         )
 
-    return "ffmpeg -y -f lavfi -i color=s={width}x{height}:d={video_seconds}:c={back_color} -vf drawtext=\"fontfile={font}: text='{text}': fontcolor={font_color}: fontsize={font_size}: {scroll_pos}: ft_load_flags=force_autohint\" {output_dir}output.mp4".format(
-        output_dir=SETTINGS["video_output"],
+    out_path = os.path.join(SETTINGS["video_output"], "output.mp4")
+    return "ffmpeg -y -f lavfi -i color=s={width}x{height}:d={video_seconds}:c={back_color} -c:v libx264 -crf 10  -vf drawtext=\"fontfile={font}: text='{text}': fontcolor={font_color}: fontsize={font_size}: {scroll_pos}: ft_load_flags=force_autohint\"  {output_path}".format(
+    # return "ffmpeg -y -f lavfi -i color=s={width}x{height}:d={video_seconds}:c={back_color}  -vf drawtext=\"fontfile={font}: text='{text}': fontcolor={font_color}: fontsize={font_size}: {scroll_pos}: ft_load_flags=force_autohint\"  {output_path}".format(
+        output_path=out_path,
         width=SETTINGS["width"],
         height=SETTINGS["height"],
         video_seconds=video_input.scroll_seconds + SETTINGS["scroll_buffer_seconds"],

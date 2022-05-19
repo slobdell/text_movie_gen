@@ -1,7 +1,7 @@
 {
-    "video_output": "/Users/slobdell/projects/led_controller/",
-    "width": 150,
-    "height": 30,
-    "scroll_buffer_seconds": 0,
+    "video_output": "/home/slobdell/projects/larry_all/led_controller/",
+    "width": 128,
+    "height": 16,
+    "scroll_buffer_seconds": 1,
     "font": "verdana.ttf"
 }
