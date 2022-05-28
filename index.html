@@ -33,12 +33,12 @@
           </div>
           <div class="row">
             <div class="col-sm-12">
-              <input type="radio" name="scrollStyle" value="static" checked>Static
+              <input type="radio" name="scrollStyle" value="static">Static
             </div>
           </div>
           <div class="row">
             <div class="col-sm-12">
-              <input type="radio" name="scrollStyle" value="horizontal">Horizontal
+              <input type="radio" name="scrollStyle" value="horizontal" checked>Horizontal
             </div>
           </div>
           <div class="row">
@@ -197,24 +197,34 @@
           <div class="row" style="margin-top: 10px;">
             <div class="col-sm-12">
 		<video autoplay="autoplay" loop style="width: 61%">
-			<source id="video-src" type="video/mp4" src="data:video/mp4;base64,AAAAHGZ0eXBtcDQyAAAAAG1wNDJpc29....../l/L+X8v5AAAAMgfDg==">
+			<source id="video-src" type="video/mp4" src="static/assets/blank_black.mp4" />
 		</video>
             </div>
           </div>
           <div class="row" style="margin-top: 10px;">
             <div class="col-sm-12">
-              <textarea id="text-val" rows="4" cols="50" name="comment" style="overflow:hidden">Enter text here...</textarea>
+              <textarea id="text-val" rows="4" cols="50" name="comment" style="overflow:hidden; width: 61%">Enter text here...</textarea>
             </div>
           </div>
           <div class="row" style="margin-top: 10px;">
-            <div class="col-sm-4">
-              <button type="button" class="btn btn-secondary preview-text">Preview Video</button>
+            <div class="buttons">
+		    <div class="col-sm-2">
+		      <button type="button" class="btn btn-secondary preview-text">Preview Video</button>
+		    </div>
+		    <div class="col-sm-1">
+			    <div class="spinner spinner-preview" style="display: none">
+				    <img src="static/assets/spinner.gif" style="width:35px;"/>
+			    </div>
+		    </div>
+		    <div class="col-sm-2">
+		      <button type="button" class="btn btn-primary update-text">Update Text</button>
+		    </div>
+		    <div class="col-sm-7">
+			    <div class="spinner spinner-update" style="display: none">
+				    <img src="static/assets/spinner.gif" style="width:35px;"/>
+			    </div>
+		    </div>
 	    </div>
-            <div class="col-sm-4">
-              <button type="button" class="btn btn-primary update-text">Update Text</button>
-            </div>
-            <div class="col-sm-4">
-            </div>
           </div>
           <div class="row" style="margin-top: 15px;">
             <div class="col-sm-6">

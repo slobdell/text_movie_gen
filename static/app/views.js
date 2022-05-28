@@ -9,6 +9,8 @@ var AggregateView = Backbone.View.extend({
   },
   preview: function() {
     data = this.postData();
+    $("button").addClass("disabled");
+    $(".spinner-preview").show();
     $.post({
       url: "/api/preview/",
       contentType: 'application/json',
@@ -19,9 +21,13 @@ var AggregateView = Backbone.View.extend({
         $("video")[0].load()
         $("#success-message").html("Preview only");
 	$(".alert-success").show();
+        $("button").removeClass("disabled");
+        $(".spinner").hide();
       },
       error: function(XMLHttpRequest, textStatus, errorThrown)  {
         $("#success-message").html("ERROR")
+        $("button").removeClass("disabled");
+        $(".spinner").hide();
       }
     });
   },
@@ -43,6 +49,8 @@ var AggregateView = Backbone.View.extend({
   },
   submit: function() {
     data = this.postData();
+    $("button").addClass("disabled");
+    $(".spinner-update").show();
     $.post({
       url: "/api/create_video/",
       contentType: 'application/json',
@@ -53,9 +61,13 @@ var AggregateView = Backbone.View.extend({
         $("video")[0].load()
         $("#success-message").html("New video created at " + new Date().getTime());
 	$(".alert-success").show();
+        $("button").removeClass("disabled");
+        $(".spinner").hide();
       },
       error: function(XMLHttpRequest, textStatus, errorThrown)  {
         $("#success-message").html("ERROR")
+        $("button").removeClass("disabled");
+        $(".spinner").hide();
       }
     });
   },
