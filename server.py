@@ -13,7 +13,7 @@ app = Flask(__name__)
 
 OUTPUT_NAME = "output"
 # this is independently configured inside the LED controller; This is somewhat hacky.
-FRAME_RATE = 30
+FRAME_RATE = 25
 
 
 class Context(object):
