@@ -4,3 +4,4 @@ env
 *.pyc
 output.mp4
 output
+*.swp

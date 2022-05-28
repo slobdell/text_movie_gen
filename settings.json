@@ -1,7 +1,7 @@
 {
-    "video_output": "/home/eblimp/projects/led_controller/",
+    "video_output": "/dev/shm/",
     "width": 128,
     "height": 16,
     "scroll_buffer_seconds": 1,
-    "font": "cour_bold.ttf"
+    "font": "verdana.ttf"
 }

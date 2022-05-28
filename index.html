@@ -137,11 +137,11 @@
                 <option value="7">7</option>
                 <option value="8">8</option>
                 <option value="9">9</option>
-                <option value="10" selected="selected">10</option>
+                <option value="10">10</option>
                 <option value="11">11</option>
                 <option value="12">12</option>
                 <option value="13">13</option>
-                <option value="14">14</option>
+                <option value="14" selected="selected">14</option>
                 <option value="15">15</option>
                 <option value="16">16</option>
                 <option value="17">17</option>
@@ -196,9 +196,9 @@
         <div class="col-sm-9">
           <div class="row" style="margin-top: 10px;">
             <div class="col-sm-12">
-							<video autoplay="autoplay" loop>
-								<source id="video-src" type="video/mp4" src="data:video/mp4;base64,AAAAHGZ0eXBtcDQyAAAAAG1wNDJpc29....../l/L+X8v5AAAAMgfDg==">
-							</video>
+		<video autoplay="autoplay" loop style="width: 61%">
+			<source id="video-src" type="video/mp4" src="data:video/mp4;base64,AAAAHGZ0eXBtcDQyAAAAAG1wNDJpc29....../l/L+X8v5AAAAMgfDg==">
+		</video>
             </div>
           </div>
           <div class="row" style="margin-top: 10px;">
@@ -207,14 +207,22 @@
             </div>
           </div>
           <div class="row" style="margin-top: 10px;">
-            <div class="col-sm-3"></div>
-            <div class="col-sm-9">
-              <button type="button" class="btn btn-primary">Update Text</button>
+            <div class="col-sm-4">
+              <button type="button" class="btn btn-secondary preview-text">Preview Video</button>
+	    </div>
+            <div class="col-sm-4">
+              <button type="button" class="btn btn-primary update-text">Update Text</button>
+            </div>
+            <div class="col-sm-4">
             </div>
           </div>
           <div class="row" style="margin-top: 15px;">
-            <div class="col-sm-12">
-              <span id="success-message"></span>
+            <div class="col-sm-6">
+	      <div class="alert alert-success" style="display: none">
+		      <span id="success-message"></span>
+	      </div>
+            </div>
+            <div class="col-sm-6">
             </div>
           </div>
         </div>

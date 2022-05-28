@@ -1,6 +1,7 @@
 import base64
 import json
 import commands
+from multiprocessing import Pool
 import os
 import re
 
@@ -10,7 +11,18 @@ from flask import send_from_directory
 
 app = Flask(__name__)
 
-OUTPUT_FILENAME = "output.mp4"
+OUTPUT_NAME = "output"
+# this is independently configured inside the LED controller; This is somewhat hacky.
+FRAME_RATE = 30
+
+
+class Context(object):
+    video_number = 0
+    keyspace_version = 1
+
+
+def enqueued_fname(keyspace, vid_num):
+    return "keyspace_%03d_video_%03d.avi" % (keyspace, vid_num)
 
 
 def run_command(command):
@@ -19,6 +31,9 @@ def run_command(command):
     # end = time.time()
     # print "Finished in %s seconds" % (end - start)
     return ret_code, output
+
+# one process each for mp4 / avi
+pool = Pool(2)
 
 
 class VideoInput(object):
@@ -71,25 +86,46 @@ def send_static(path):
     return send_from_directory('static', path)
 
 
+@app.route('/api/preview/', methods=['POST'])
+def preview():
+    video_input = VideoInput(request.json)
+    run_command(
+        _video_input_to_command(video_input, "mp4"),
+    )
+    return json.dumps({"video": _get_video_as_b64()}), 200
+
+
 @app.route('/api/create_video/', methods=['POST'])
 def receive_user_input():
     video_input = VideoInput(request.json)
-    run_command(
-        _video_input_to_command(video_input)
+    pool.map(
+            run_command,
+            [
+                _video_input_to_command(video_input, "mp4"),
+                _video_input_to_command(video_input, "avi"),
+            ],
     )
+    Context.video_number += 1
+    avi_out = os.path.join(SETTINGS["video_output"], "%s.%s" % (OUTPUT_NAME, "avi"))
+    mved = os.path.join(SETTINGS["video_output"], enqueued_fname(Context.keyspace_version, Context.video_number)) 
+    run_command("mv %s %s" % (avi_out, mved))
+    # run_command("cp %s %s" % (mved, "last_created.avi"))
+    """
+    This used to be necessary when running on the same machine.
     try:
         os.system("killall ffmpeg")
     except:
-        pass
+       pass
+    """
     return json.dumps({"video": _get_video_as_b64()}), 200
 
 
 def _get_video_as_b64():
-    with open("%s%s" % (SETTINGS["video_output"], OUTPUT_FILENAME), "rb") as f:
+    with open("%s%s" % (SETTINGS["video_output"], OUTPUT_NAME + ".mp4"), "rb") as f:
         return base64.b64encode(f.read())
 
 
-def _video_input_to_command(video_input):
+def _video_input_to_command(video_input, extension):
     if video_input.scroll_type == "static":
         scroll_pos = "x=(w-text_w)/2:y=(h-text_h)/2"
     elif video_input.scroll_type == "vertical":
@@ -103,20 +139,25 @@ def _video_input_to_command(video_input):
             scroll_time_seconds=video_input.scroll_seconds,
         )
 
-    out_path = os.path.join(SETTINGS["video_output"], "output.mp4")
-    return "ffmpeg -y -f lavfi -i color=s={width}x{height}:d={video_seconds}:c={back_color} -c:v libx264 -crf 10  -vf drawtext=\"fontfile={font}: text='{text}': fontcolor={font_color}: fontsize={font_size}: {scroll_pos}: ft_load_flags=force_autohint\"  {output_path}".format(
-    # return "ffmpeg -y -f lavfi -i color=s={width}x{height}:d={video_seconds}:c={back_color}  -vf drawtext=\"fontfile={font}: text='{text}': fontcolor={font_color}: fontsize={font_size}: {scroll_pos}: ft_load_flags=force_autohint\"  {output_path}".format(
+    out_path = os.path.join(SETTINGS["video_output"], "%s.%s" % (OUTPUT_NAME, extension))
+    # mp4
+    base_cmd = "ffmpeg -y -f lavfi -i color=s={width}x{height}:d={video_seconds}:c={back_color} -c:v libx264 -crf 10  -vf drawtext=\"fontfile={font}: text='{text}': fontcolor={font_color}: fontsize={font_size}: {scroll_pos}: ft_load_flags=force_autohint\" -r {frame_rate} {output_path}"
+    if extension == "avi":
+        base_cmd = "ffmpeg -y -f lavfi -i color=s={width}x{height}:d={video_seconds}:c={back_color} -c:v libx264 -crf 10 -vf drawtext=\"fontfile={font}: text='{text}': fontcolor={font_color}: fontsize={font_size}: {scroll_pos}: ft_load_flags=force_autohint\" -r {frame_rate} {output_path}"
+    ret = base_cmd.format(
         output_path=out_path,
         width=SETTINGS["width"],
         height=SETTINGS["height"],
         video_seconds=video_input.scroll_seconds + SETTINGS["scroll_buffer_seconds"],
         back_color=video_input.back_color,
         font=SETTINGS["font"],
-        text=video_input.text,
+        text=video_input.text.replace(":", "\:"),
         font_color=video_input.font_color,
         font_size=video_input.font_size,
         scroll_pos=scroll_pos,
+        frame_rate=FRAME_RATE,
     )
+    return ret
 
 
 def _cleaned_text(text):
