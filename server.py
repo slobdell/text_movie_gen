@@ -4,6 +4,7 @@ import commands
 from multiprocessing import Pool
 import os
 import re
+import sys
 
 from flask import Flask
 from flask import request
@@ -23,6 +24,9 @@ class Context(object):
 
 def enqueued_fname(keyspace, vid_num):
     return "keyspace_%03d_video_%03d.avi" % (keyspace, vid_num)
+
+def request_fname(keyspace, vid_num):
+    return "r_%03d_request_%03d.json" % (keyspace, vid_num)
 
 
 def run_command(command):
@@ -97,19 +101,40 @@ def preview():
 
 @app.route('/api/create_video/', methods=['POST'])
 def receive_user_input():
-    video_input = VideoInput(request.json)
-    pool.map(
-            run_command,
-            [
-                _video_input_to_command(video_input, "mp4"),
-                _video_input_to_command(video_input, "avi"),
-            ],
-    )
+    return receive_input_helper(request.json, is_base_station=True)
+
+
+def receive_input_helper(request_json, is_base_station=False):
+    video_input = VideoInput(request_json)
+    if is_base_station:
+        pool.map(
+                run_command,
+                [
+                    _video_input_to_command(video_input, "mp4"),
+                    _video_input_to_command(video_input, "avi"),
+                ],
+        )
+    else:
+        run_command(
+            _video_input_to_command(video_input, "avi"),
+        )
+        # now also find the latest saved video to avoid overwriting. This case is short-lived process
+        Context.video_number = _current_max_video_revision()
+
     Context.video_number += 1
     avi_out = os.path.join(SETTINGS["video_output"], "%s.%s" % (OUTPUT_NAME, "avi"))
-    mved = os.path.join(SETTINGS["video_output"], enqueued_fname(Context.keyspace_version, Context.video_number)) 
+    mved = os.path.join(SETTINGS["video_output"], enqueued_fname(Context.keyspace_version, Context.video_number))
     run_command("mv %s %s" % (avi_out, mved))
     # run_command("cp %s %s" % (mved, "last_created.avi"))
+
+    # persist the request as well
+    if is_base_station:
+        b = json.dumps(request.json)
+        tmp_out = os.path.join(SETTINGS["video_output"], "%s.%s" % (OUTPUT_NAME, "json"))
+        with open(tmp_out, "w+") as f:
+            f.write(b)
+        r_fname = os.path.join(SETTINGS["video_output"], request_fname(Context.keyspace_version, Context.video_number))
+        run_command("mv %s %s" % (tmp_out, r_fname))
     """
     This used to be necessary when running on the same machine.
     try:
@@ -118,6 +143,26 @@ def receive_user_input():
        pass
     """
     return json.dumps({"video": _get_video_as_b64()}), 200
+
+
+def _current_max_video_revision():
+    fnames = os.listdir(SETTINGS["video_output"])
+    filtered = []
+    last_fname = None
+    for fname in fnames:
+        # note, sloppy coding, ideally define keyspace_%03d as a dependency on enqueued..()
+        if fname.startswith("keyspace_%03d" % Context.keyspace_version):
+            filtered.append(fname)
+
+    if len(filtered) == 0:
+        return 0
+    filtered.sort()
+    last_fname = filtered[-1]
+    stripped = last_fname.replace(".avi", "")
+    tokens = stripped.split("_")
+    rev = int(tokens[-1])
+    return rev
+
 
 
 def _get_video_as_b64():
@@ -163,3 +208,14 @@ def _video_input_to_command(video_input, extension):
 def _cleaned_text(text):
     return text
     # return re.sub(r'([^\s\w]|_)+', '', text).replace(" ", "\ ")
+
+
+if __name__ == "__main__":
+    if len(sys.argv) == 1:
+        raise Exception("illegal usage, want python server.py {json_data}")
+    input_data = sys.argv[1]
+    try:
+        request_json = json.loads(input_data)
+    except ValueError:
+        raise Exception("illegal usage, want json formatted input, i.e. (python server.py \"$(cat data.json)\")")
+    receive_input_helper(request_json)
