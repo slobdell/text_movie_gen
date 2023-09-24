@@ -1,6 +1,6 @@
 
 serve:
-	sudo FLASK_APP=server.py env/bin/flask run -h 0.0.0.0 -p 3000
+	sudo FLASK_APP=server.py nohup env/bin/flask run -h 0.0.0.0 -p 3000
 
 productionize:
 	rm -rf prod
