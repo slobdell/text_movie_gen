@@ -107,34 +107,27 @@ def receive_user_input():
 def receive_input_helper(request_json, is_base_station=False):
     video_input = VideoInput(request_json)
     if is_base_station:
-        pool.map(
-                run_command,
-                [
-                    _video_input_to_command(video_input, "mp4"),
-                    _video_input_to_command(video_input, "avi"),
-                ],
+        run_command(
+            _video_input_to_command(video_input, "mp4"),
         )
+        b = json.dumps(request.json)
+        tmp_out = os.path.join(SETTINGS["video_output"], "%s.%s" % (OUTPUT_NAME, "json"))
+        with open(tmp_out, "w+") as f:
+            f.write(b)
+        Context.video_number += 1
+        r_fname = os.path.join(SETTINGS["video_output"], request_fname(Context.keyspace_version, Context.video_number))
+        run_command("mv %s %s" % (tmp_out, r_fname))
     else:
         run_command(
             _video_input_to_command(video_input, "avi"),
         )
         # now also find the latest saved video to avoid overwriting. This case is short-lived process
         Context.video_number = _current_max_video_revision()
+        Context.video_number += 1
 
-    Context.video_number += 1
-    avi_out = os.path.join(SETTINGS["video_output"], "%s.%s" % (OUTPUT_NAME, "avi"))
-    mved = os.path.join(SETTINGS["video_output"], enqueued_fname(Context.keyspace_version, Context.video_number))
-    run_command("mv %s %s" % (avi_out, mved))
-    # run_command("cp %s %s" % (mved, "last_created.avi"))
-
-    # persist the request as well
-    if is_base_station:
-        b = json.dumps(request.json)
-        tmp_out = os.path.join(SETTINGS["video_output"], "%s.%s" % (OUTPUT_NAME, "json"))
-        with open(tmp_out, "w+") as f:
-            f.write(b)
-        r_fname = os.path.join(SETTINGS["video_output"], request_fname(Context.keyspace_version, Context.video_number))
-        run_command("mv %s %s" % (tmp_out, r_fname))
+        avi_out = os.path.join(SETTINGS["video_output"], "%s.%s" % (OUTPUT_NAME, "avi"))
+        mved = os.path.join(SETTINGS["video_output"], enqueued_fname(Context.keyspace_version, Context.video_number))
+        run_command("mv %s %s" % (avi_out, mved))
     """
     This used to be necessary when running on the same machine.
     try:
@@ -142,7 +135,9 @@ def receive_input_helper(request_json, is_base_station=False):
     except:
        pass
     """
-    return json.dumps({"video": _get_video_as_b64()}), 200
+    if is_base_station:
+        return json.dumps({"video": _get_video_as_b64()}), 200
+    return {}, 200
 
 
 def _current_max_video_revision():
