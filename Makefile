@@ -1,6 +1,7 @@
 
 serve:
 	sudo FLASK_APP=server.py nohup env/bin/flask run -h 0.0.0.0 -p 3000
+	# $ sudo nohup python app1c.py > log.txt 2>&1 &
 
 productionize:
 	rm -rf prod
